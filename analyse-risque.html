@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriPilot - Analyse des Risques</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-green: #00A86B;
+            --dark-green: #008555;
+            --light-green: #E8F5E9;
+            --bg-gray: #F5F7FA;
+            --text-dark: #2D3748;
+            --text-gray: #6B7280;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-gray);
+        }
+        .sidebar {
+            background: linear-gradient(180deg, #00A86B 0%, #008555 100%);
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+        .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-left: 4px solid white;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar w-64 flex-shrink-0 hidden lg:flex flex-col text-white">
+            <!-- Logo -->
+            <div class="p-6 border-b border-white/20">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                        <i class="fas fa-leaf text-green-600 text-xl"></i>
+                    </div>
+                    <span class="text-xl font-bold">AgriPilot</span>
+                </div>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="flex-1 p-4 space-y-2">
+                <a href="partner_dashboard.html" onclick="window.location.href='partner_dashboard.html'; return false;" class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg">
+                    <i class="fas fa-th-large w-5"></i>
+                    <span>Tableau de bord</span>
+                </a>
+                <a href="#" class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg">
+                    <i class="fas fa-users w-5"></i>
+                    <span>Agriculteurs</span>
+                </a>
+                <a href="analyse-risque.html" class="nav-link active flex items-center gap-3 px-4 py-3 rounded-lg">
+                    <i class="fas fa-shield-alt w-5"></i>
+                    <span>Analyse des Risques</span>
+                </a>
+                <a href="suivi-depense.html" onclick="window.location.href='suivi-depense.html'; return false;" class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg">
+                    <i class="fas fa-wallet w-5"></i>
+                    <span>Suivi de Dépense</span>
+                </a>
+                <a href="#" class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg">
+                    <i class="fas fa-cloud-sun w-5"></i>
+                    <span>Données Météos</span>
+                </a>
+                <a href="#" class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg">
+                    <i class="fas fa-chart-line w-5"></i>
+                    <span>Prévisions</span>
+                </a>
+                <a href="#" class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg">
+                    <i class="fas fa-bell w-5"></i>
+                    <span>Alertes</span>
+                    <span class="ml-auto bg-red-500 text-xs px-2 py-1 rounded-full">3</span>
+                </a>
+                <a href="#" class="nav-link flex items-center gap-3 px-4 py-3 rounded-lg">
+                    <i class="fas fa-history w-5"></i>
+                    <span>Historique</span>
+                </a>
+            </nav>
+            
+            <!-- User Profile -->
+            <div class="p-4 border-t border-white/20">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-medium text-sm">Ibrahima Camara</p>
+                        <p class="text-xs text-white/70">Partenaire Premium</p>
+                    </div>
+                    <button class="text-white/70 hover:text-white">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <header class="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <button class="lg:hidden text-gray-600">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">Analyse des Risques</h1>
+                        <p class="text-sm text-gray-500">Surveillez et gérez les risques de vos agriculteurs partenaires</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">
+                        <i class="fas fa-download mr-2"></i>Exporter
+                    </button>
+                    <button class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-bell text-xl"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="flex-1 overflow-y-auto p-6">
+                <!-- Résumé des Alertes -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-red-50 border border-red-200 rounded-xl p-5 text-center card-hover cursor-pointer transition-all">
+                        <div class="flex items-center justify-center gap-2 mb-3">
+                            <span class="w-4 h-4 bg-red-500 rounded-full animate-pulse"></span>
+                            <span class="font-semibold text-red-700 text-lg">Critique</span>
+                        </div>
+                        <p class="text-4xl font-bold text-red-600">23</p>
+                        <p class="text-sm text-red-500 mt-1">1.8% des agriculteurs</p>
+                    </div>
+                    <div class="bg-orange-50 border border-orange-200 rounded-xl p-5 text-center card-hover cursor-pointer transition-all">
+                        <div class="flex items-center justify-center gap-2 mb-3">
+                            <span class="w-4 h-4 bg-orange-500 rounded-full"></span>
+                            <span class="font-semibold text-orange-700 text-lg">Attention</span>
+                        </div>
+                        <p class="text-4xl font-bold text-orange-600">156</p>
+                        <p class="text-sm text-orange-500 mt-1">12.5% des agriculteurs</p>
+                    </div>
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-5 text-center card-hover cursor-pointer transition-all">
+                        <div class="flex items-center justify-center gap-2 mb-3">
+                            <span class="w-4 h-4 bg-yellow-500 rounded-full"></span>
+                            <span class="font-semibold text-yellow-700 text-lg">Surveillance</span>
+                        </div>
+                        <p class="text-4xl font-bold text-yellow-600">289</p>
+                        <p class="text-sm text-yellow-500 mt-1">23.2% des agriculteurs</p>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 rounded-xl p-5 text-center card-hover cursor-pointer transition-all">
+                        <div class="flex items-center justify-center gap-2 mb-3">
+                            <span class="w-4 h-4 bg-green-500 rounded-full"></span>
+                            <span class="font-semibold text-green-700 text-lg">Normal</span>
+                        </div>
+                        <p class="text-4xl font-bold text-green-600">779</p>
+                        <p class="text-sm text-green-500 mt-1">62.5% des agriculteurs</p>
+                    </div>
+                </div>
+
+                <!-- Types de Risques et Graphique -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <!-- Types de Risques -->
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Types de Risques</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg hover:bg-blue-100 cursor-pointer transition-colors">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-cloud-rain text-blue-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-800">Agroclimatiques</p>
+                                        <p class="text-xs text-gray-500">Sécheresse, inondation, gel</p>
+                                    </div>
+                                </div>
+                                <span class="px-3 py-1 bg-blue-200 text-blue-800 text-sm rounded-full font-medium">87</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-purple-50 rounded-lg hover:bg-purple-100 cursor-pointer transition-colors">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-route text-purple-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-800">Itinéraire Technique</p>
+                                        <p class="text-xs text-gray-500">Retard semis, dosage engrais</p>
+                                    </div>
+                                </div>
+                                <span class="px-3 py-1 bg-purple-200 text-purple-800 text-sm rounded-full font-medium">124</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-emerald-50 rounded-lg hover:bg-emerald-100 cursor-pointer transition-colors">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-coins text-emerald-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-800">Financiers</p>
+                                        <p class="text-xs text-gray-500">Retard remboursement</p>
+                                    </div>
+                                </div>
+                                <span class="px-3 py-1 bg-emerald-200 text-emerald-800 text-sm rounded-full font-medium">45</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-pink-50 rounded-lg hover:bg-pink-100 cursor-pointer transition-colors">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-cogs text-pink-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-800">Opérationnels</p>
+                                        <p class="text-xs text-gray-500">Absence formations</p>
+                                    </div>
+                                </div>
+                                <span class="px-3 py-1 bg-pink-200 text-pink-800 text-sm rounded-full font-medium">68</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Graphique Répartition -->
+                    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Répartition des Risques par Région</h3>
+                            <select class="text-sm border border-gray-200 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                <option>Ce mois</option>
+                                <option>Cette semaine</option>
+                                <option>Ce trimestre</option>
+                            </select>
+                        </div>
+                        <div style="height: 280px;">
+                            <canvas id="riskChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Matrice des Risques -->
+                <div class="bg-white rounded-xl shadow-sm mb-6">
+                    <div class="p-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <h2 class="text-lg font-semibold text-gray-800">
+                            <i class="fas fa-table text-gray-500 mr-2"></i>Matrice des Risques par Agriculteur
+                        </h2>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <div class="relative">
+                                <input type="text" placeholder="Rechercher un agriculteur..." class="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm w-64">
+                                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            </div>
+                            <select class="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                <option>Toutes les régions</option>
+                                <option>Kindia</option>
+                                <option>Mamou</option>
+                                <option>Kankan</option>
+                                <option>Labé</option>
+                            </select>
+                            <select class="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                <option>Toutes les cultures</option>
+                                <option>Riz</option>
+                                <option>Maïs</option>
+                                <option>Arachide</option>
+                                <option>Café</option>
+                            </select>
+                            <select class="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                <option>Tous les niveaux</option>
+                                <option>🔴 Critique</option>
+                                <option>🟠 Attention</option>
+                                <option>🟡 Surveillance</option>
+                                <option>🟢 Normal</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="text-left text-gray-500 border-b border-gray-200 bg-gray-50">
+                                        <th class="px-4 py-3 font-medium">
+                                            <input type="checkbox" class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                                        </th>
+                                        <th class="px-4 py-3 font-medium">Agriculteur</th>
+                                        <th class="px-4 py-3 font-medium">Région</th>
+                                        <th class="px-4 py-3 font-medium">Culture</th>
+                                        <th class="px-4 py-3 font-medium">Risque</th>
+                                        <th class="px-4 py-3 font-medium">Types de risque</th>
+                                        <th class="px-4 py-3 font-medium">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-4 py-3">
+                                            <input type="checkbox" class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                                    <i class="fas fa-user text-green-600 text-sm"></i>
+                                                </div>
+                                                <div>
+                                                    <span class="font-medium text-gray-800 block">Mamadou Diallo</span>
+                                                    <span class="text-xs text-gray-500">ID: AGR-001</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3 text-gray-600">Kindia</td>
+                                        <td class="px-4 py-3"><span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">Riz</span></td>
+                                        <td class="px-4 py-3">
+                                            <span class="px-3 py-1 bg-orange-100 text-orange-700 text-xs rounded-full font-medium">🟠 Moyen</span>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="flex flex-wrap gap-1">
+                                                <span class="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full"><i class="fas fa-route mr-1"></i>Itinéraire agricole</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="flex items-center gap-2">
+                                                <button class="px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded-lg hover:bg-blue-200 transition-colors">
+                                                    <i class="fas fa-eye mr-1"></i>Suivi
+                                                </button>
+                                                <button class="p-1 text-gray-400 hover:text-gray-600">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-4 py-3">
+                                            <input type="checkbox" class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
+                                                    <i class="fas fa-user text-pink-600 text-sm"></i>
+                                                </div>
+                                                <div>
+                                                    <span class="font-medium text-gray-800 block">Fatoumata Camara</span>
+                                                    <span class="text-xs text-gray-500">ID: AGR-002</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3 text-gray-600">Mamou</td>
+                                        <td class="px-4 py-3"><span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">Maïs</span></td>
+                                        <td class="px-4 py-3">
+                                            <span class="px-3 py-1 bg-orange-100 text-orange-700 text-xs rounded-full font-medium">🟠 Moyen</span>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="flex flex-wrap gap-1">
+                                                <span class="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-full"><i class="fas fa-sun mr-1"></i>Sécheresse</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="flex items-center gap-2">
+                                                <button class="px-3 py-1 bg-orange-100 text-orange-700 text-xs rounded-lg hover:bg-orange-200 transition-colors">
+                                                    <i class="fas fa-bell mr-1"></i>Alerte
+                                                </button>
+                                                <button class="p-1 text-gray-400 hover:text-gray-600">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-red-50 bg-red-50/50">
+                                        <td class="px-4 py-3">
+                                            <input type="checkbox" class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                                    <i class="fas fa-user text-blue-600 text-sm"></i>
+                                                </div>
+                                                <div>
+                                                    <span class="font-medium text-gray-800 block">Ibrahima Bah</span>
+                                                    <span class="text-xs text-gray-500">ID: AGR-003</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3 text-gray-600">Kankan</td>
+                                        <td class="px-4 py-3"><span class="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded-full">Arachide</span></td>
+                                        <td class="px-4 py-3">
+                                            <span class="px-3 py-1 bg-red-100 text-red-700 text-xs rounded-full font-medium">🔴 Élevé</span>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="flex flex-wrap gap-1">
+                                                <span class="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-full"><i class="fas fa-sun mr-1"></i>Sécheresse</span>
+                                                <span class="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full"><i class="fas fa-bug mr-1"></i>Maladie</span>
+                                                <span class="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full"><i class="fas fa-route mr-1"></i>Itinéraire agricole</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="flex items-center gap-2">
+                                                <button class="px-3 py-1 bg-red-500 text-white text-xs rounded-lg hover:bg-red-600 transition-colors">
+                                                    <i class="fas fa-exclamation-triangle mr-1"></i>Urgent
+                                                </button>
+                                                <button class="p-1 text-gray-400 hover:text-gray-600">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-4 py-3">
+                                            <input type="checkbox" class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                                                    <i class="fas fa-user text-purple-600 text-sm"></i>
+                                                </div>
+                                                <div>
+                                                    <span class="font-medium text-gray-800 block">Aissatou Barry</span>
+                                                    <span class="text-xs text-gray-500">ID: AGR-004</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3 text-gray-600">Labé</td>
+                                        <td class="px-4 py-3"><span class="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">Café</span></td>
+                                        <td class="px-4 py-3">
+                                            <span class="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">🟢 Faible</span>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="flex flex-wrap gap-1">
+                                                <span class="px-2 py-0.5 bg-gray-100 text-gray-500 text-xs rounded-full">Aucun risque détecté</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="flex items-center gap-2">
+                                                <button class="px-3 py-1 bg-gray-100 text-gray-600 text-xs rounded-lg hover:bg-gray-200 transition-colors">
+                                                    <i class="fas fa-check mr-1"></i>OK
+                                                </button>
+                                                <button class="p-1 text-gray-400 hover:text-gray-600">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-4 py-3">
+                                            <input type="checkbox" class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                                                    <i class="fas fa-user text-orange-600 text-sm"></i>
+                                                </div>
+                                                <div>
+                                                    <span class="font-medium text-gray-800 block">Ousmane Sow</span>
+                                                    <span class="text-xs text-gray-500">ID: AGR-005</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3 text-gray-600">Kindia</td>
+                                        <td class="px-4 py-3"><span class="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-full">Légumes</span></td>
+                                        <td class="px-4 py-3">
+                                            <span class="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full font-medium">🟡 Modéré</span>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="flex flex-wrap gap-1">
+                                                <span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full"><i class="fas fa-water mr-1"></i>Inondation</span>
+                                                <span class="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full"><i class="fas fa-route mr-1"></i>Itinéraire agricole</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="flex items-center gap-2">
+                                                <button class="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-lg hover:bg-yellow-200 transition-colors">
+                                                    <i class="fas fa-search mr-1"></i>Surveiller
+                                                </button>
+                                                <button class="p-1 text-gray-400 hover:text-gray-600">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-red-50 bg-red-50/50">
+                                        <td class="px-4 py-3">
+                                            <input type="checkbox" class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                                                    <i class="fas fa-user text-red-600 text-sm"></i>
+                                                </div>
+                                                <div>
+                                                    <span class="font-medium text-gray-800 block">Amadou Baldé</span>
+                                                    <span class="text-xs text-gray-500">ID: AGR-006</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3 text-gray-600">Kankan</td>
+                                        <td class="px-4 py-3"><span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">Riz</span></td>
+                                        <td class="px-4 py-3">
+                                            <span class="px-3 py-1 bg-red-100 text-red-700 text-xs rounded-full font-medium">🔴 Critique</span>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="flex flex-wrap gap-1">
+                                                <span class="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-full"><i class="fas fa-sun mr-1"></i>Sécheresse</span>
+                                                <span class="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full"><i class="fas fa-bug mr-1"></i>Maladie</span>
+                                                <span class="px-2 py-0.5 bg-cyan-100 text-cyan-700 text-xs rounded-full"><i class="fas fa-bug mr-1"></i>Parasites</span>
+                                                <span class="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full"><i class="fas fa-route mr-1"></i>Itinéraire agricole</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="flex items-center gap-2">
+                                                <button class="px-3 py-1 bg-red-500 text-white text-xs rounded-lg hover:bg-red-600 transition-colors">
+                                                    <i class="fas fa-exclamation-triangle mr-1"></i>Urgent
+                                                </button>
+                                                <button class="p-1 text-gray-400 hover:text-gray-600">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="flex flex-col md:flex-row items-center justify-between mt-6 pt-4 border-t border-gray-100 gap-4">
+                            <div class="flex items-center gap-4">
+                                <p class="text-sm text-gray-500">Affichage 1-6 sur 1,247 agriculteurs</p>
+                                <select class="text-sm border border-gray-200 rounded-lg px-2 py-1">
+                                    <option>10 par page</option>
+                                    <option>25 par page</option>
+                                    <option>50 par page</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button class="px-3 py-1 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50" disabled>
+                                    <i class="fas fa-chevron-left mr-1"></i>Précédent
+                                </button>
+                                <button class="px-3 py-1 bg-green-600 text-white rounded-lg text-sm">1</button>
+                                <button class="px-3 py-1 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">2</button>
+                                <button class="px-3 py-1 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">3</button>
+                                <button class="px-3 py-1 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">4</button>
+                                <button class="px-3 py-1 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">5</button>
+                                <span class="text-gray-400">...</span>
+                                <button class="px-3 py-1 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">125</button>
+                                <button class="px-3 py-1 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">
+                                    Suivant<i class="fas fa-chevron-right ml-1"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <footer class="bg-white border-t border-gray-200 px-6 py-4">
+                <div class="flex flex-col md:flex-row items-center justify-between text-sm text-gray-500">
+                    <p>© 2024 AgriPilot. Tous droits réservés.</p>
+                    <div class="flex items-center gap-4 mt-2 md:mt-0">
+                        <a href="#" class="hover:text-green-600">Aide</a>
+                        <a href="#" class="hover:text-green-600">Conditions</a>
+                        <a href="#" class="hover:text-green-600">Confidentialité</a>
+                        <a href="#" class="hover:text-green-600">Contact</a>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Chart Script -->
+    <script>
+        const ctx = document.getElementById('riskChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Kindia', 'Mamou', 'Kankan', 'Labé', 'Conakry'],
+                datasets: [
+                    {
+                        label: 'Critique',
+                        data: [5, 8, 6, 2, 2],
+                        backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Attention',
+                        data: [35, 42, 38, 25, 16],
+                        backgroundColor: 'rgba(249, 115, 22, 0.8)',
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Surveillance',
+                        data: [65, 58, 72, 54, 40],
+                        backgroundColor: 'rgba(234, 179, 8, 0.8)',
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Normal',
+                        data: [180, 165, 142, 168, 124],
+                        backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        grid: { display: false }
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0,0,0,0.05)' }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
